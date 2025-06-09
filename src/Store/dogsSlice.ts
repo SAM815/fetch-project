@@ -1,11 +1,16 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+
+
 interface DogState {
   favoriteIds: string[];
+  
 }
 
 const initialState: DogState = {
   favoriteIds: [],
+  
+
 };
 
 const dogsSlice = createSlice({
@@ -23,6 +28,7 @@ const dogsSlice = createSlice({
     resetFavorites(state) {
       state.favoriteIds = [];
     },
+    
   },
 });
 

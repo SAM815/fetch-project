@@ -1,17 +1,33 @@
+//Use redux to get all dogs to display favorites later
+
 import { useEffect, useState } from "react";
 import { fetchBreeds, searchDogs, getDogsByIds, matchDog } from "../API/dogs";
 import DogCard from "../Components/DogCard";
 import { useSelector } from "react-redux";
 import { RootState } from "../Store";
 import Navbar from "../Components/Navbar";
+import DogDetailModal from "../Components/DogDetailModal";
+import FavoritesModal from "../Components/FavoritesModal";
+import Confetti from "react-confetti";
+
+
 
 function SearchPage() {
   const [breeds, setBreeds] = useState<string[]>([]);
   const [selectedBreed, setSelectedBreed] = useState<string | null>(null);
+  const [selectedDog, setSelectedDog] = useState(null);
   const [sort, setSort] = useState<"asc" | "desc">("asc");
   const [dogs, setDogs] = useState<any[]>([]);
   const [next, setNext] = useState<string | null>(null);
   const [prev, setPrev] = useState<string | null>(null);
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [page, setPage] = useState<number>(1);
+  const [matchedDog, setMatchedDog] = useState<any>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
+
+
+
 
   const favorites = useSelector((state: RootState) => state.dogs.favoriteIds);
   const userName = useSelector((state: RootState) => state.auth.name);
@@ -22,12 +38,17 @@ function SearchPage() {
     return q;
   };
 
-  const loadDogs = async (query?: string) => {
+  const loadDogs = async (query?: string, direction?: "next" | "prev") => {
     const { resultIds, next, prev } = await searchDogs(query || buildQuery());
     const dogObjects = await getDogsByIds(resultIds);
     setDogs(dogObjects);
     setNext(next || null);
     setPrev(prev || null);
+
+    setPage((prevPage) =>
+      direction === "next" ? prevPage + 1 :
+        direction === "prev" ? Math.max(prevPage - 1, 1) : prevPage
+    );
   };
 
   useEffect(() => {
@@ -36,86 +57,142 @@ function SearchPage() {
   }, [selectedBreed, sort]);
 
   const generateMatch = async () => {
-    const { match } = await matchDog(favorites);
-    const [matchedDog] = await getDogsByIds([match]);
-    alert(`You matched with: ${matchedDog.name}`);
+    try {
+      const { match } = await matchDog(favorites);
+      const [dog] = await getDogsByIds([match]);
+      setMatchedDog(dog);
+      setShowConfetti(true);
+      setShowMessage(true);
+      setTimeout(() => {
+        setShowConfetti(false);
+        setShowMessage(false);
+      }, 4000);
+    } catch (error) {
+      console.error("Failed to generate match", error);
+      alert("Add Favorites to generate match")
+    }
   };
 
+
   return (
-    <div className="h-screen flex flex-col bg-[#FFB749]">
-      <Navbar />
+    <>
+      {showConfetti && (
+        <div className="fixed inset-0 z-[9999] pointer-events-none">
+          <Confetti width={window.innerWidth} height={window.innerHeight} />
+        </div>
+      )}
 
-      {/* Header */}
-      <div className="w-full text-center py-2 text-xl font-bold text-[#300D38]">
-        Welcome {userName.toUpperCase()}, let’s find you some friends!
-      </div>
+      {showMessage && (
+        <div className="fixed top-10 left-1/2 transform -translate-x-1/2 z-[9999] text-4xl font-extrabold text-[#890075] bg-white px-6 py-2 rounded-xl shadow-xl">
+          We Found You a Friend!
+        </div>
+      )}
+      <div className="h-screen flex flex-col bg-[#FFB749]">
+        <Navbar />
 
-      {/* Body */}
-      <div className="flex flex-1">
-        {/* Left Sidebar */}
-        <div className="w-[20%] pt-[72px] flex justify-center items-start">
-          <div className="bg-[#300D38] py-4 px-4 rounded-lg shadow-md w-[90%] flex flex-col items-center">
-            <div className="w-[90%] flex flex-col gap-3">
-              <h2 className="font-bold text-lg text-white text-center">Filter Options</h2>
-              <input placeholder="Name" className="p-2 rounded bg-[#FFB749]" />
-              <select onChange={(e) => setSelectedBreed(e.target.value || null)} className="p-2 rounded bg-[#FFB749]">
-                <option value="">All Breeds</option>
-                {breeds.map((breed) => (
-                  <option key={breed} value={breed}>{breed}</option>
-                ))}
-              </select>
-              <input placeholder="Age" className="p-2 rounded bg-[#FFB749]" />
-              <input placeholder="State" className="p-2 rounded bg-[#FFB749]" />
-              <input placeholder="County" className="p-2 rounded bg-[#FFB749]" />
-              <input placeholder="Zip-Code" className="p-2 rounded bg-[#FFB749]" />
+        {/* Header */}
+        <div className="w-full text-center py-2 text-xl font-bold text-[#300D38]">
+          Welcome {userName.toUpperCase()}, let’s find you some friends!
+        </div>
 
-              <button className="bg-[#C83DB9] text-white py-2 rounded-full">Filter</button>
-              <button onClick={generateMatch} className="bg-green-500 text-white py-2 rounded-full">Generate Match</button>
+        {/* Body */}
+        <div className="flex flex-1">
+          {/* Left Sidebar */}
+          <div className="w-[20%] pt-[72px] flex justify-center items-start">
+            <div className="bg-[#300D38] py-4 px-4 rounded-lg shadow-md w-[90%] flex flex-col items-center">
+              <div className="w-[90%] flex flex-col gap-3">
+                <h2 className="font-bold text-lg text-white text-center">Filter Options</h2>
+                <input placeholder="Name" className="p-2 rounded bg-[#FFB749]" />
+                <select onChange={(e) => setSelectedBreed(e.target.value || null)} className="p-2 rounded bg-[#FFB749]">
+                  <option value="">All Breeds</option>
+                  {breeds.map((breed) => (
+                    <option key={breed} value={breed}>{breed}</option>
+                  ))}
+                </select>
+                <input placeholder="Age" className="p-2 rounded bg-[#FFB749]" />
+                <input placeholder="State" className="p-2 rounded bg-[#FFB749]" />
+                <input placeholder="County" className="p-2 rounded bg-[#FFB749]" />
+                <input placeholder="Zip-Code" className="p-2 rounded bg-[#FFB749]" />
+
+                <button className="bg-[#C83DB9] text-white py-2 rounded-full">Filter</button>
+
+              </div>
+            </div>
+          </div>
+
+          {/* Right Content */}
+          <div className="w-[80%] p-4 flex flex-col gap-4">
+            {/* Upper Right - Search & Sort */}
+            <div className="flex justify-center gap-4">
+              {/* Search input stays the same */}
+              <input placeholder="Search..." className="p-2 w-1/2 rounded bg-white" />
+
+              {/* Sort Button with dynamic styling */}
+              <button
+                onClick={() => setSort(sort === "asc" ? "desc" : "asc")}
+                className={`px-4 py-2 rounded text-white cursor-pointer ${sort === "asc" ? "bg-[#300D38] hover:bg-[#890075]" : "bg-[#890075] hover:bg-[#300D38]"
+                  }`}
+              >
+                Sort: {sort.toUpperCase()}
+              </button>
+
+              {/* Favorites Button */}
+              <button
+                onClick={() => setShowFavorites(true)}
+                className="px-4 py-2 rounded text-white bg-[#300D38] hover:bg-[#890075] cursor-pointer"
+              >
+                Favorites: {favorites.length}
+              </button>
+              {/* Generate Mac Button*/}
+              <button
+                onClick={generateMatch}
+                className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-700"
+              >
+                Generate Match
+              </button>
+            </div>
+
+            {/* Lower Right - Dog Cards */}
+            <div className="grid grid-cols-5 gap-2 flex-1">
+              {dogs.slice(0, 10).map((dog) => (
+                <DogCard key={dog.id} dog={dog} onClick={() => setSelectedDog(dog)} />
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Right Content */}
-        <div className="w-[80%] p-4 flex flex-col gap-4">
-          {/* Upper Right - Search & Sort */}
-          <div className="flex justify-center gap-4">
-            <input placeholder="Search..." className="p-2 w-1/2 rounded bg-white" />
-            <button onClick={() => setSort(sort === "asc" ? "desc" : "asc")}
-              className="bg-[#300D38] text-white px-4 py-2 rounded">
-              Sort: {sort.toUpperCase()}
-            </button>
-          </div>
+        {selectedDog && (
+          <DogDetailModal dog={selectedDog} onClose={() => setSelectedDog(null)} />
+        )}
+        {/* Footer */}
+        {showFavorites && (
+          <FavoritesModal onClose={() => setShowFavorites(false)} />
+        )}
+        <div className="w-full py-2 bg-[#FFB749] flex justify-center items-center gap-4">
+          <button
+            onClick={() => loadDogs(prev || undefined, "prev")}
+            disabled={!prev}
+            className="bg-[#300D38] text-white px-4 py-2 rounded disabled:opacity-50"
+          >
+            Prev
+          </button>
 
-          {/* Lower Right - Dog Cards */}
-          <div className="grid grid-cols-5 gap-2 flex-1">
-            {dogs.slice(0, 10).map((dog) => (
-              <DogCard key={dog.id} dog={dog} />
-            ))}
-          </div>
+          <span className="text-[#300D38] font-bold">Page: {page}</span>
+
+          <button
+            onClick={() => loadDogs(next || undefined, "next")}
+            disabled={!next}
+            className="bg-[#300D38] text-white px-4 py-2 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       </div>
+      {matchedDog && (
+        <DogDetailModal dog={matchedDog} onClose={() => setMatchedDog(null)} />
+      )}
+    </>
 
-      {/* Footer */}
-      <div className="w-full py-2 bg-[#FFB749] flex justify-center items-center gap-4">
-        <button
-          onClick={() => loadDogs(prev || undefined)}
-          disabled={!prev}
-          className="bg-[#300D38] text-white px-4 py-2 rounded disabled:opacity-50"
-        >
-          Prev
-        </button>
-
-        <span className="text-[#300D38] font-bold">Page: 1</span>
-
-        <button
-          onClick={() => loadDogs(next || undefined)}
-          disabled={!next}
-          className="bg-[#300D38] text-white px-4 py-2 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
-    </div>
   );
 }
 
