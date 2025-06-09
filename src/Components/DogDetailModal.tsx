@@ -1,6 +1,9 @@
 // DogDetailModal.tsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 interface Dog {
   id: string;
@@ -24,6 +27,14 @@ interface Props {
   dog: Dog;
   onClose: () => void;
 }
+
+// Optional: fix missing marker icons
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
+  iconUrl: require("leaflet/dist/images/marker-icon.png"),
+  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+});
 
 const DogDetailModal: React.FC<Props> = ({ dog, onClose }) => {
   const [location, setLocation] = useState<Location | null>(null);
@@ -82,10 +93,44 @@ const DogDetailModal: React.FC<Props> = ({ dog, onClose }) => {
           </div>
         </div>
 
-        {/* Bottom Section - Placeholder for Map */}
-        <div className="mt-6 h-[calc(80%-10rem)] bg-white rounded-lg flex items-center justify-center">
-          <span className="text-[#300D38] italic">Map feature coming soon...</span>
+        {/* Bottom Section - Map */}
+        <div className="mt-6 h-[345px] bg-white rounded-lg overflow-hidden border border-[#300D38]">
+          {location ? (
+            <MapContainer
+              center={[location.latitude, location.longitude]}
+              zoom={12}
+              scrollWheelZoom={false}
+              className="h-full w-full"
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[location.latitude, location.longitude]}>
+                <Popup>
+                  {dog.name} is here!
+                </Popup>
+              </Marker>
+            </MapContainer>
+          ) : (
+            <div className="h-full w-full flex items-center justify-center text-gray-500">
+              Loading map...
+            </div>
+          )}
         </div>
+        {/* Directions Link */}
+        {location && (
+          <div className="mt-4 text-center">
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${encodeURIComponent(`${location.city}, ${location.state} ${dog.zip_code}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-[#890075] text-white px-4 py-2 rounded-lg hover:bg-[#300D38] transition"
+            >
+              Get Directions
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );

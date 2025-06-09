@@ -6,7 +6,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="w-full bg-white shadow-md flex items-center px-4" style={{ height: "64px",backgroundColor: '#FFB749' }}>
+    <div className="w-full bg-white shadow-md flex items-center px-4 " style={{ height: "64px",backgroundColor: '#FFB749' }}>
       <img
         src= {logo}
         alt="dog"

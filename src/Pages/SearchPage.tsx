@@ -9,6 +9,7 @@ import Navbar from "../Components/Navbar";
 import DogDetailModal from "../Components/DogDetailModal";
 import FavoritesModal from "../Components/FavoritesModal";
 import Confetti from "react-confetti";
+import avatarLogo from "../Assets/Calvin.png"
 
 
 
@@ -31,6 +32,7 @@ function SearchPage() {
 
   const favorites = useSelector((state: RootState) => state.dogs.favoriteIds);
   const userName = useSelector((state: RootState) => state.auth.name);
+  const userEmail = useSelector((state: RootState) => state.auth.email);
 
   const buildQuery = () => {
     let q = `sort=breed:${sort}`;
@@ -92,33 +94,47 @@ function SearchPage() {
 
         {/* Header */}
         <div className="w-full text-center py-2 text-xl font-bold text-[#300D38]">
-          Welcome {userName.toUpperCase()}, let’s find you some friends!
+          Welcome {userName.toUpperCase()}! Let’s find you some friends!
         </div>
 
         {/* Body */}
         <div className="flex flex-1">
-          {/* Left Sidebar */}
-          <div className="w-[20%] pt-[72px] flex justify-center items-start">
-            <div className="bg-[#300D38] py-4 px-4 rounded-lg shadow-md w-[90%] flex flex-col items-center">
-              <div className="w-[90%] flex flex-col gap-3">
-                <h2 className="font-bold text-lg text-white text-center">Filter Options</h2>
-                <input placeholder="Name" className="p-2 rounded bg-[#FFB749]" />
-                <select onChange={(e) => setSelectedBreed(e.target.value || null)} className="p-2 rounded bg-[#FFB749]">
-                  <option value="">All Breeds</option>
-                  {breeds.map((breed) => (
-                    <option key={breed} value={breed}>{breed}</option>
-                  ))}
-                </select>
-                <input placeholder="Age" className="p-2 rounded bg-[#FFB749]" />
-                <input placeholder="State" className="p-2 rounded bg-[#FFB749]" />
-                <input placeholder="County" className="p-2 rounded bg-[#FFB749]" />
-                <input placeholder="Zip-Code" className="p-2 rounded bg-[#FFB749]" />
+          {/* Left Sidebar: Profile Section */}
+          <div className="w-[20%] pt-[72px] pb-[38px] flex justify-center items-start">
+            <div className="bg-[#300D38] py-4 px-4 rounded-lg shadow-md w-[90%] h-full flex flex-col items-center text-white">
+              <img
+                src={avatarLogo}
+                alt="Avatar"
+                className="w-32 h-32 rounded-full border-4 border-white mb-6"
+              />
 
-                <button className="bg-[#C83DB9] text-white py-2 rounded-full">Filter</button>
+              <h2 className="text-xl font-bold">{userName.toUpperCase()}</h2>
+              <p className="text-sm mb-4 mt-4">{userEmail}</p>
+              <button
+                onClick={generateMatch}
+                className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-700 w-full mb-2 mt-4"
+              >
+                Generate Match
+              </button>
+              <button
+                onClick={() => setShowFavorites(true)}
+                className="bg-[#890075] text-white px-4 py-2 rounded-full hover:bg-[#FFB749] w-full mt-4"
+              >
+                Favorites: {favorites.length}
+              </button>
+              <button
+                className="mt-4 bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 w-full mb-4"
+              >
+                Logout
+              </button>
+              <p className="mt-8 text-center text-white text-xl italic font-medium px-6 leading-relaxed">
+                “Do you believe in love at first sight, or should I wag my tail again?”
+              </p>
 
-              </div>
+
             </div>
           </div>
+
 
           {/* Right Content */}
           <div className="w-[80%] p-4 flex flex-col gap-4">
@@ -136,20 +152,7 @@ function SearchPage() {
                 Sort: {sort.toUpperCase()}
               </button>
 
-              {/* Favorites Button */}
-              <button
-                onClick={() => setShowFavorites(true)}
-                className="px-4 py-2 rounded text-white bg-[#300D38] hover:bg-[#890075] cursor-pointer"
-              >
-                Favorites: {favorites.length}
-              </button>
-              {/* Generate Mac Button*/}
-              <button
-                onClick={generateMatch}
-                className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-700"
-              >
-                Generate Match
-              </button>
+
             </div>
 
             {/* Lower Right - Dog Cards */}
