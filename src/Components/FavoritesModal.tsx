@@ -1,4 +1,3 @@
-// FavoritesModal.tsx
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../Store";
@@ -6,6 +5,7 @@ import DogCard from "./DogCard";
 import { matchDog, getDogsByIds } from "../API/dogs";
 import DogDetailModal from "./DogDetailModal";
 import Confetti from "react-confetti";
+import waitingDog from "../Assets/waiting_doggo.png"; // Add your image here
 
 interface Dog {
   id: string;
@@ -31,7 +31,7 @@ const FavoritesModal: React.FC<Props> = ({ onClose }) => {
     const fetchFavorites = async () => {
       try {
         if (favoriteIds.length === 0) {
-          setFavoriteDogs([]); // clear immediately when no favorites
+          setFavoriteDogs([]);
           return;
         }
 
@@ -58,7 +58,7 @@ const FavoritesModal: React.FC<Props> = ({ onClose }) => {
       }, 4000);
     } catch (error) {
       console.error("Failed to generate match", error);
-      alert("Add Favorites to generate match")
+      alert("Add Favorites to generate match");
     }
   };
 
@@ -92,7 +92,16 @@ const FavoritesModal: React.FC<Props> = ({ onClose }) => {
           {/* Middle Section */}
           <div className="flex-1 overflow-y-auto p-4">
             {favoriteDogs.length === 0 ? (
-              <p className="text-center text-[#300D38]">You haven't added any favorites yet.</p>
+              <div className="flex flex-col justify-center items-center text-center space-y-4">
+                <img
+                  src={waitingDog}
+                  alt="Dog waiting"
+                  className="w-64 h-64 object-contain"
+                />
+                <p className="text-xl font-semibold text-[#300D38]">
+                  Don't make this doggo wait! 🐾 Add some favorites to find your perfect match!
+                </p>
+              </div>
             ) : (
               <div className="grid grid-cols-5 gap-4">
                 {favoriteDogs.map((dog) => (

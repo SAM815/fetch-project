@@ -3,13 +3,16 @@
 import { useEffect, useState } from "react";
 import { fetchBreeds, searchDogs, getDogsByIds, matchDog } from "../API/dogs";
 import DogCard from "../Components/DogCard";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../Store";
 import Navbar from "../Components/Navbar";
 import DogDetailModal from "../Components/DogDetailModal";
 import FavoritesModal from "../Components/FavoritesModal";
 import Confetti from "react-confetti";
 import avatarLogo from "../Assets/Calvin.png"
+import { useNavigate } from "react-router-dom";
+import { logout } from "../Store/authSlice";
+import { logoutUser } from "../API/auth";
 
 
 
@@ -34,6 +37,19 @@ function SearchPage() {
   const userName = useSelector((state: RootState) => state.auth.name);
   const userEmail = useSelector((state: RootState) => state.auth.email);
 
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser(); // This clears the cookie/session on the backend
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      dispatch(logout()); // This clears Redux store
+      navigate("/login"); // This redirects to login page
+    }
+  };
   const buildQuery = () => {
     let q = `sort=breed:${sort}`;
     if (selectedBreed) q += `&breeds=${selectedBreed}`;
@@ -123,10 +139,12 @@ function SearchPage() {
                 Favorites: {favorites.length}
               </button>
               <button
-                className="mt-4 bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 w-full mb-4"
+                onClick={handleLogout}
+                className="mt-4 bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 w-full"
               >
                 Logout
               </button>
+
               <p className="mt-8 text-center text-white text-xl italic font-medium px-6 leading-relaxed">
                 “Do you believe in love at first sight, or should I wag my tail again?”
               </p>
@@ -138,7 +156,7 @@ function SearchPage() {
 
           {/* Right Content */}
           <div className="w-[80%] p-4 flex flex-col gap-4">
-            {/* Upper Right - Search & Sort */}
+            {/* Upper Right - Search, Sort, and Breed Filter */}
             <div className="flex justify-center gap-4">
               {/* Search input stays the same */}
               <input placeholder="Search..." className="p-2 w-1/2 rounded bg-white" />
@@ -146,12 +164,28 @@ function SearchPage() {
               {/* Sort Button with dynamic styling */}
               <button
                 onClick={() => setSort(sort === "asc" ? "desc" : "asc")}
-                className={`px-4 py-2 rounded text-white cursor-pointer ${sort === "asc" ? "bg-[#300D38] hover:bg-[#890075]" : "bg-[#890075] hover:bg-[#300D38]"
+                className={`px-4 py-2 rounded text-white cursor-pointer ${sort === "asc"
+                  ? "bg-[#300D38] hover:bg-[#890075]"
+                  : "bg-[#890075] hover:bg-[#300D38]"
                   }`}
               >
                 Sort: {sort.toUpperCase()}
               </button>
 
+              <select
+                value={selectedBreed || ""}
+                onChange={(e) =>
+                  setSelectedBreed(e.target.value === "" ? null : e.target.value)
+                }
+                className="p-2 rounded text-white bg-[#890075] font-semibold cursor-pointer"
+              >
+                <option value="">All Breeds</option>
+                {breeds.map((breed) => (
+                  <option key={breed} value={breed}>
+                    {breed}
+                  </option>
+                ))}
+              </select>
 
             </div>
 
