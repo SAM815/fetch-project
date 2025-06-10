@@ -53,49 +53,55 @@ function LoginPage() {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
 
-      {/* Body */}
-      <div className="flex flex-1" style={{ backgroundColor: "#FFB749" }}>
-        {/* Left - Rotating Dog Images */}
-        <div className="w-1/2 flex justify-center items-center p-6">
+      {/* Main Content */}
+      <div className="flex flex-col md:flex-col lg:flex-row flex-1 bg-[#FFB749] px-4 sm:px-6 md:px-10 py-10 gap-10 items-center justify-center">
+        {/* Left - Image */}
+        <div className="w-full md:w-3/4 lg:w-1/2 flex justify-center">
           <img
             src={dogImages[currentImageIndex]}
             alt="Dog"
-            className="rounded-xl shadow-xl w-full max-w-2xl h-auto object-cover"
+            className="rounded-xl shadow-xl w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl object-cover"
           />
         </div>
 
-        {/* Right - Login Form */}
-        <div className="w-1/2 flex flex-col justify-center items-center px-10">
-          <h2 className="text-4xl font-bold text-[#300D38] mb-8">Login Here!</h2>
+        {/* Right - Form */}
+        <div className="w-full md:w-3/4 lg:w-1/2 flex flex-col justify-center items-center">
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#300D38] mb-6 text-center">
+            Login Here!
+          </h2>
 
           <form
             onSubmit={handleSubmit}
-            className="space-y-6 w-full max-w-md bg-[#300D38]/90 p-10 rounded-[40px] shadow-lg"
+            className="w-full max-w-md bg-[#300D38]/90 p-6 sm:p-8 md:p-10 rounded-[40px] shadow-lg space-y-6"
           >
-            <label className="text-white block mb-1 text-lg">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="p-3 w-full rounded bg-[#FFB749] text-black"
-            />
+            <div>
+              <label className="text-white block mb-2 text-base sm:text-lg">Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="p-3 w-full rounded bg-[#FFB749] text-black"
+              />
+            </div>
 
-            <label className="text-white block mb-1 text-lg">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="p-3 w-full rounded bg-[#FFB749] text-black"
-            />
+            <div>
+              <label className="text-white block mb-2 text-base sm:text-lg">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="p-3 w-full rounded bg-[#FFB749] text-black"
+              />
+            </div>
 
             <button
               type="submit"
-              className="mt-10 w-40 bg-[#890075] text-white px-6 py-3 rounded-[40px] hover:bg-[#ed63cf] hover:text-white transition-colors mx-auto block text-lg"
+              className="mt-6 w-full sm:w-40 bg-[#890075] text-white px-6 py-3 rounded-[40px] hover:bg-[#ed63cf] transition-colors mx-auto block text-base sm:text-lg"
             >
               Log In
             </button>
@@ -103,12 +109,9 @@ function LoginPage() {
         </div>
       </div>
 
-      {/* Footer with Rotating Quotes */}
-      <div
-        className="bg-[#300D38] flex items-center justify-center pt-4 pb-6 px-4"
-        style={{ height: "calc(100vh - 80vh - 64px)" }}
-      >
-        <p className="text-white text-xl text-center max-w-4xl italic">
+      {/* Footer Quote */}
+      <div className="bg-[#300D38] flex items-center justify-center py-6 px-4">
+        <p className="text-white text-sm sm:text-base md:text-lg text-center italic max-w-3xl">
           "{dogQuotes[currentQuoteIndex]}"
         </p>
       </div>
