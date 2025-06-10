@@ -16,7 +16,7 @@ The app allows users to:
 
 ## 🎨 Design Process
 
-Before writing any code, I created a full UI/UX prototype using **Figma**. The design focused on:
+Before writing any code, I created a UI/UX low-fidelity prototype using **Figma**. The design focused on:
 - Accessibility and readability
 - Consistent color schemes and branding
 
