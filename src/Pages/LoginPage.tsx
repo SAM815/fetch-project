@@ -95,7 +95,7 @@ function LoginPage() {
 
             <button
               type="submit"
-              className="mt-10 w-40 bg-[#FFB749] text-black px-6 py-3 rounded-[40px] hover:bg-[#890075] hover:text-white transition-colors mx-auto block text-lg"
+              className="mt-10 w-40 bg-[#890075] text-white px-6 py-3 rounded-[40px] hover:bg-[#ed63cf] hover:text-white transition-colors mx-auto block text-lg"
             >
               Log In
             </button>
