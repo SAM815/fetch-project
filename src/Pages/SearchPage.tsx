@@ -9,12 +9,11 @@ import Navbar from "../Components/Navbar";
 import DogDetailModal from "../Components/DogDetailModal";
 import FavoritesModal from "../Components/FavoritesModal";
 import Confetti from "react-confetti";
-import avatarLogo from "../Assets/Calvin.png"
-import waitingDog from "../Assets/waiting_doggo.png"
+import avatarLogo from "../Assets/Calvin.png";
+import waitingDog from "../Assets/waiting_doggo.png";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../Store/authSlice";
 import { logoutUser } from "../API/auth";
-import SearchIcon from '@mui/icons-material/Search';
 
 
 function SearchPage() {
@@ -30,8 +29,9 @@ function SearchPage() {
   const [matchedDog, setMatchedDog] = useState<any>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [hasMoreDogs, setHasMoreDogs] = useState(true);
+  const [showMapModal, setShowMapModal] = useState(false);
+
 
   const favorites = useSelector((state: RootState) => state.dogs.favoriteIds);
   const userName = useSelector((state: RootState) => state.auth.name);
@@ -57,32 +57,33 @@ function SearchPage() {
     return q;
   };
 
-  function appendQueryParams(baseUrl: string, sort: "asc" | "desc", breed: string | null): string {
-    const url = new URL(baseUrl, window.location.origin);
-    url.searchParams.set("sort", `breed:${sort}`);
-    if (breed) url.searchParams.set("breeds", breed);
-    return url.toString().replace(window.location.origin, "");
-  }
+  const appendQueryParams = (url: string, sort: "asc" | "desc", breed: string | null): string => {
+    const baseUrl = new URL(url, window.location.origin);
+    baseUrl.searchParams.set("sort", `breed:${sort}`);
+    if (breed) baseUrl.searchParams.set("breeds", breed);
+    return baseUrl.toString().replace(window.location.origin, "");
+  };
 
   const loadDogs = async (url?: string, direction?: "next" | "prev") => {
-    let query: string;
+    let queryToUse = "";
 
     if (direction === "next" && next) {
-      query = appendQueryParams(next, sort, selectedBreed);
+      queryToUse = appendQueryParams(next, sort, selectedBreed);
     } else if (direction === "prev" && prev) {
-      query = appendQueryParams(prev, sort, selectedBreed);
+      queryToUse = appendQueryParams(prev, sort, selectedBreed);
     } else {
-      query = buildQuery();
+      queryToUse = buildQuery();
     }
 
-    const { resultIds, next: newNext, prev: newPrev } = await searchDogs(query);
+    const { resultIds, next: newNext, prev: newPrev } = await searchDogs(queryToUse);
     const dogObjects = await getDogsByIds(resultIds);
     setDogs(dogObjects);
     setNext(newNext || null);
     setPrev(newPrev || null);
+    setHasMoreDogs(!!newNext);
     setPage((prevPage) =>
       direction === "next" ? prevPage + 1 :
-        direction === "prev" ? Math.max(prevPage - 1, 1) : prevPage
+        direction === "prev" ? Math.max(prevPage - 1, 1) : 1
     );
   };
 
@@ -110,21 +111,9 @@ function SearchPage() {
       }, 4000);
     } catch (error) {
       console.error("Failed to generate match", error);
-      alert("Add Favorites to generate match")
+      alert("Add Favorites to generate match");
     }
   };
-
-  const filteredDogs = dogs.filter((dog) => {
-    const lowerTerm = searchQuery.toLowerCase();
-    return (
-      dog.name.toLowerCase().includes(lowerTerm) ||
-      dog.breed.toLowerCase().includes(lowerTerm) ||
-      String(dog.age).includes(lowerTerm) ||
-      dog.zip_code.includes(lowerTerm)
-    );
-  });
-
-  const paginatedDogs = filteredDogs.slice((page - 1) * 10, page * 10);
 
   return (
     <>
@@ -139,6 +128,7 @@ function SearchPage() {
           We Found You a Friend!
         </div>
       )}
+
       <div className="h-screen flex flex-col bg-[#FFB749]">
         <Navbar />
 
@@ -152,68 +142,41 @@ function SearchPage() {
               <img src={avatarLogo} alt="Avatar" className="w-32 h-32 rounded-full border-4 border-white mb-6" />
               <h2 className="text-xl font-bold">{userName.toUpperCase()}</h2>
               <p className="text-sm mb-4 mt-4">{userEmail}</p>
-              <button onClick={generateMatch} className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-500 w-full mb-2 mt-4">Generate Match</button>
-              <button onClick={() => setShowFavorites(true)} className="bg-[#890075] text-white px-4 py-2 rounded-full hover:bg-[#ed63cf] w-full mt-4">Favorites: {favorites.length}</button>
-              <button onClick={handleLogout} className="mt-4 bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-500 w-full">Logout</button>
+              <button onClick={generateMatch} className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-700 w-full mb-2 mt-4">Generate Match</button>
+              <button onClick={() => setShowFavorites(true)} className="bg-[#890075] text-white px-4 py-2 rounded-full hover:bg-[#FFB749] w-full mt-4">Favorites: {favorites.length}</button>
+              <button onClick={handleLogout} className="mt-4 bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 w-full">Logout</button>
               <p className="mt-8 text-center text-white text-xl italic font-medium px-6 leading-relaxed">“Do you believe in love at first sight, or should I wag my tail again?”</p>
             </div>
           </div>
 
           <div className="w-[80%] p-4 flex flex-col gap-4">
             <div className="flex justify-center gap-4">
-              {/* Home Button */}
               <button
                 onClick={() => {
-                  setSearchTerm("");
-                  setSearchQuery("");
                   setSelectedBreed(null);
                   setSort("asc");
                   setPage(1);
-                  loadDogs(); // reload default
+                  loadDogs();
                 }}
                 className="p-2 bg-[#300D38] text-white rounded hover:bg-[#4d1f66]"
                 title="Home"
               >
                 🏠
               </button>
+              
 
-              {/* Globe Button */}
-              <button
-                onClick={() => alert("Globe button clicked!")}
-                className="p-2 bg-[#300D38] text-white rounded hover:bg-[#4d1f66]"
-                title="Explore"
-              >
-                🌐
-              </button>
-              <input
-                placeholder="Search by name, breed, age, or zipcode..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    setSearchQuery(searchTerm);
-                    setPage(1);
-                  }
-                }}
-                className="p-2 w-1/2 rounded bg-white"
-              />
               <button
                 onClick={() => {
-                  setSearchQuery(searchTerm);
+                  const newSort = sort === "asc" ? "desc" : "asc";
+                  setSort(newSort);
                   setPage(1);
+                  setNext(null);
+                  setPrev(null);
                 }}
-                className="p-2 bg-[#890075] text-white rounded hover:bg-[#C83DB9]"
+                className={`px-4 py-2 rounded text-white cursor-pointer ${sort === "asc" ? "bg-[#300D38] hover:bg-[#890075]" : "bg-[#890075] hover:bg-[#300D38]"}`}
               >
-                <SearchIcon />
+                Sort: {sort === "asc" ? "A-Z" : "Z-A"}
               </button>
-
-              <button
-                onClick={() => setSort(sort === "asc" ? "desc" : "asc")}
-                className={`px-4 py-2 rounded text-white cursor-pointer ${sort === "asc" ? "bg-[#890075] hover:bg-[#C83DB9]" : "bg-[#C83DB9] hover:bg-[#890075]"}`}
-              >
-                Sort: {sort.toUpperCase()}
-              </button>
-
               <select
                 value={selectedBreed || ""}
                 onChange={(e) => setSelectedBreed(e.target.value === "" ? null : e.target.value)}
@@ -227,14 +190,14 @@ function SearchPage() {
             </div>
 
             <div className="grid grid-cols-5 gap-2 flex-1">
-              {paginatedDogs.length > 0 ? (
-                paginatedDogs.map((dog) => (
+              {dogs.length > 0 ? (
+                dogs.slice(0, 10).map((dog) => (
                   <DogCard key={dog.id} dog={dog} onClick={() => setSelectedDog(dog)} />
                 ))
               ) : (
                 <div className="col-span-5 flex flex-col justify-center items-center text-center space-y-4">
                   <img src={waitingDog} alt="Dog waiting" className="w-64 h-64 object-contain" />
-                  <p className="text-xl font-semibold text-[#300D38]">No matching dogs found. Try searching again!</p>
+                  <p className="text-xl font-semibold text-[#300D38]">No dogs available right now. Try a different filter or come back later!</p>
                 </div>
               )}
             </div>
@@ -248,21 +211,22 @@ function SearchPage() {
         {showFavorites && (
           <FavoritesModal onClose={() => setShowFavorites(false)} />
         )}
+        
 
-        {paginatedDogs.length > 0 && (
+        {dogs.length > 0 && (
           <div className="w-full py-2 bg-[#FFB749] flex justify-center items-center gap-4">
             <button
-              onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              disabled={page === 1}
-              className="bg-[#300D38] text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-[#890075]"
+              onClick={() => loadDogs(prev || undefined, "prev")}
+              disabled={!prev}
+              className="bg-[#300D38] text-white px-4 py-2 rounded disabled:opacity-50"
             >
               Prev
             </button>
             <span className="text-[#300D38] font-bold">Page: {page}</span>
             <button
-              onClick={() => setPage((p) => p + 1)}
-              disabled={page * 10 >= filteredDogs.length}
-              className="bg-[#300D38] text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-[#890075]"
+              onClick={() => loadDogs(next || undefined, "next")}
+              disabled={!next || !hasMoreDogs}
+              className="bg-[#300D38] text-white px-4 py-2 rounded disabled:opacity-50"
             >
               Next
             </button>

@@ -19,3 +19,4 @@ export const matchDog = async (ids: string[]) => {
   const res = await fetchClient.post("/dogs/match", ids);
   return res.data; // { match: string }
 };
+
