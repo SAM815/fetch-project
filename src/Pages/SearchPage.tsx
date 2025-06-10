@@ -144,7 +144,7 @@ function SearchPage() {
               <button onClick={() => setShowFavorites(true)} className="bg-[#890075] text-white px-4 py-2 rounded-full hover:bg-[#FFB749] w-full text-sm">Favorites: {favorites.length}</button>
               <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 w-full text-sm">Logout</button>
             </div>
-            <p className="mt-6 text-center text-white text-sm italic px-2 leading-relaxed">“Do you believe in love at first sight, or should I wag my tail again?”</p>
+            <p className="mt-6 text-center text-white text-3xl italic px-2 leading-relaxed">“Do you believe in love at first sight, or should I wag my tail again?”</p>
           </div>
         </div>
 
@@ -209,7 +209,7 @@ function SearchPage() {
           <button
             onClick={() => loadDogs(prev || undefined, "prev")}
             disabled={!prev}
-            className="bg-[#300D38] text-white px-4 py-2 rounded disabled:opacity-50"
+            className="bg-[#300D38] text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-[#890075]"
           >
             Prev
           </button>
@@ -217,7 +217,7 @@ function SearchPage() {
           <button
             onClick={() => loadDogs(next || undefined, "next")}
             disabled={!next || !hasMoreDogs}
-            className="bg-[#300D38] text-white px-4 py-2 rounded disabled:opacity-50"
+            className="bg-[#300D38] text-white px-4 py-2 rounded disabled:opacity-50 hover:bg-[#890075]"
           >
             Next
           </button>
